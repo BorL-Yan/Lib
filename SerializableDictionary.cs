@@ -10,7 +10,6 @@ namespace Lib
         [SerializeField] private List<TKey> keys = new List<TKey>();
         [SerializeField] private List<TValue> values = new List<TValue>();
 
-        // Сохраняем словарь в списки перед записью на диск
         public void OnBeforeSerialize()
         {
             keys.Clear();
@@ -22,7 +21,6 @@ namespace Lib
             }
         }
 
-        // Загружаем списки обратно в словарь при запуске
         public void OnAfterDeserialize()
         {
             this.Clear();

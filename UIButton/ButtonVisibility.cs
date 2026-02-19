@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UIScripts
+namespace Lib.UI
 {
     public class ButtonVisibility : MonoBehaviour
     {

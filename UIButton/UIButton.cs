@@ -1,13 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using DG.Tweening;
-using UIScripts;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
 
 
-namespace FPS_Battle.UIScripts
+namespace Lib.UI
 {
     [RequireComponent(typeof(ButtonVisibility))]
     public abstract class UIButton : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
@@ -18,54 +17,15 @@ namespace FPS_Battle.UIScripts
         
         private ButtonVisibility _visibility;
         
-        private AudioClip _clickSound;
         private Sequence _anim;
         private bool _clicked = false;
-        
-        protected virtual string GetBundleName => "Click_Low";
         protected virtual float GetClickDuration => 0.125f;
         #endregion
         
         private void Awake()
         {
             _visibility = GetComponent<ButtonVisibility>();
-        }
-
-        private async void Start()
-        {
-            await Init();
-        }
-        
-        private async Task Init()
-        {
-            string assetBundleName = GetBundleName;
-    
-            try 
-            {
-                var handle = Addressables.LoadAssetAsync<AudioClip>(assetBundleName);
-                await handle.Task;
-
-                if (handle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
-                {
-                    _clickSound = handle.Result;
-            
-                    // В WebGL важно убедиться, что данные клипа загружены в память
-                    if (!_clickSound.preloadAudioData)
-                    {
-                        _clickSound.LoadAudioData();
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"Addressables failed to load sound: {assetBundleName}");
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Error during sound init: {e.Message}");
-            }
-        }
-        
+        }        
         
         private void OnEnable()
         {

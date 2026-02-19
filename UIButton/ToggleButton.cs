@@ -1,34 +1,37 @@
 using FPS_Battle.UIScripts;
 using UnityEngine;
 
-public abstract class ToggleButton : UIButton
+namespace Lib.UI
 {
-    public bool isOn { get; set; }
-    [SerializeField] protected GameObject _enabledIcon;
-
-    private void OnEnable()
+    public abstract class ToggleButton : UIButton
     {
-        LoadSettings();
-        Apply();
-    }
+        public bool isOn { get; set; }
+        [SerializeField] protected GameObject _enabledIcon;
 
-    protected override void Click()
-    {
-        Toggle();
-    }
+        private void OnEnable()
+        {
+            LoadSettings();
+            Apply();
+        }
 
-    public virtual void Toggle()    
-    {
-        isOn = !isOn;
-        Apply();
-        SaveSettings();
-    }
+        protected override void Click()
+        {
+            Toggle();
+        }
 
-    protected virtual void Apply()
-    {
-        _enabledIcon.SetActive(isOn);
+        public virtual void Toggle()    
+        {
+            isOn = !isOn;
+            Apply();
+            SaveSettings();
+        }
+
+        protected virtual void Apply()
+        {
+            _enabledIcon.SetActive(isOn);
+        }
+        
+        public abstract void SaveSettings();
+        public abstract void LoadSettings();
     }
-    
-    public abstract void SaveSettings();
-    public abstract void LoadSettings();
 }
