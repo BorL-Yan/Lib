@@ -18,7 +18,7 @@ namespace Lib.UI
             Toggle();
         }
 
-        public virtual void Toggle()    
+        protected virtual void Toggle()    
         {
             isOn = !isOn;
             Apply();
