@@ -1,4 +1,3 @@
-using FPS_Battle.UIScripts;
 using UnityEngine;
 
 namespace Lib.UI

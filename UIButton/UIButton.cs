@@ -1,8 +1,6 @@
 using System;
-using System.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.EventSystems;
 
 
@@ -35,11 +33,7 @@ namespace Lib.UI
         public void OnPointerClick(PointerEventData eventData)
         {
             State(_visibility.clickedPanel);
-            
-            if (_clickSound != null)
-            {
-                Sound.InterfaceSound.Instance.PlayOneShot(_clickSound);
-            }
+        
             _anim?.Kill(false);
             _anim = DOTween.Sequence();
             _clicked = true;

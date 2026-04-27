@@ -2,11 +2,6 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
-/*
- * Платформа: Unity Editor Custom Tool
- * Функционал: Сброс переменных (R), Сохранение из Play Mode (S), Связанный масштаб (Link).
- * Оптимизация: Исправлена верстка и логика состояний кнопок.
- */
 
 [CustomEditor(typeof(Transform))]
 [CanEditMultipleObjects]
@@ -26,7 +21,6 @@ public class CustomTransformEditor : Editor
 
     private void OnEnable()
     {
-        // 1. Самая важная проверка. Если целей нет, выходим, чтобы не вызвать исключение.
         if (target == null || targets == null || targets.Length == 0 || targets[0] == null)
             return;
 
@@ -34,14 +28,12 @@ public class CustomTransformEditor : Editor
         m_Rot = serializedObject.FindProperty("m_LocalRotation");
         m_Scale = serializedObject.FindProperty("m_LocalScale");
 
-        // Отписываемся перед подпиской, чтобы избежать дубликатов при перекомпиляции
         EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
     }
 
     private void OnDisable()
     {
-        // Чистим за собой события при закрытии инспектора
         EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
     }
 
@@ -52,7 +44,6 @@ public class CustomTransformEditor : Editor
         serializedObject.Update();
         float originalLabelWidth = EditorGUIUtility.labelWidth;
         
-        // Устанавливаем фиксированную ширину меток для выравнивания
         EditorGUIUtility.labelWidth = 70;
 
         DrawPropertyRow("Position", m_Pos, Vector3.zero);
@@ -67,14 +58,12 @@ public class CustomTransformEditor : Editor
     {
         EditorGUILayout.BeginHorizontal();
 
-        // Рисуем заголовок вручную для контроля ширины
         EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth));
 
         if (property.propertyType == SerializedPropertyType.Quaternion)
         {
             Vector3 euler = property.quaternionValue.eulerAngles;
             EditorGUI.BeginChangeCheck();
-            // Используем GUIContent.none для предотвращения наложения текста (Fix for image_2c5784.png)
             euler = EditorGUILayout.Vector3Field(GUIContent.none, euler);
             if (EditorGUI.EndChangeCheck())
             {
@@ -83,7 +72,6 @@ public class CustomTransformEditor : Editor
         }
         else
         {
-            // Для Position используем PropertyField без лейбла
             EditorGUILayout.PropertyField(property, GUIContent.none);
         }
 
@@ -96,24 +84,20 @@ public class CustomTransformEditor : Editor
     {
         EditorGUILayout.BeginHorizontal();
 
-        // 1. Лейбл Scale (чуть уже из-за кнопки Link)
         EditorGUILayout.LabelField("Scale", GUILayout.Width(EditorGUIUtility.labelWidth - 25));
 
-        // 2. Кнопка цепочки (Link)
         int id = target.GetInstanceID();
         bool isLocked = _lockedScales.Contains(id);
         
         GUIContent lockIcon = EditorGUIUtility.IconContent(isLocked ? "Linked" : "Unlinked");
         lockIcon.tooltip = "Равномерное масштабирование";
 
-        // Используем iconButton для аккуратного вида
         if (GUILayout.Button(lockIcon, EditorStyles.iconButton, GUILayout.Width(22), GUILayout.Height(18)))
         {
             if (isLocked) _lockedScales.Remove(id);
             else _lockedScales.Add(id);
         }
 
-        // 3. Поле масштаба
         EditorGUI.BeginChangeCheck();
         Vector3 oldScale = m_Scale.vector3Value;
         Vector3 newScale = EditorGUILayout.Vector3Field(GUIContent.none, oldScale);
@@ -123,7 +107,6 @@ public class CustomTransformEditor : Editor
             if (isLocked)
             {
                 float ratio = 1f;
-                // Определяем, какая ось изменилась, и считаем коэффициент
                 if (!Mathf.Approximately(newScale.x, oldScale.x)) 
                     ratio = oldScale.x != 0 ? newScale.x / oldScale.x : newScale.x;
                 else if (!Mathf.Approximately(newScale.y, oldScale.y)) 
@@ -132,7 +115,6 @@ public class CustomTransformEditor : Editor
                     ratio = oldScale.z != 0 ? newScale.z / oldScale.z : newScale.z;
                 if (ratio != 0)
                 {
-                    // Применяем коэффициент ко всем осям
                     m_Scale.vector3Value = oldScale * ratio;
                 }
             }
@@ -152,8 +134,6 @@ public class CustomTransformEditor : Editor
     {
         bool isPlaying = Application.isPlaying;
 
-        // --- Кнопка R (Reset) ---
-        // Делаем её неактивной, но видимой в Play Mode (по вашему запросу)
         GUI.enabled = !isPlaying;
         if (!isPlaying)
         {
@@ -171,7 +151,6 @@ public class CustomTransformEditor : Editor
         
         GUI.enabled = true;
 
-        // --- Кнопка S (Save) ---
         if (isPlaying)
         {
             int id = target.GetInstanceID();        
