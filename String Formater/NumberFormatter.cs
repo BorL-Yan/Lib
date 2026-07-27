@@ -1,7 +1,3 @@
-using UnityEngine;
-using TMPro;
-using System.Globalization;
-
 namespace Lib
 {
     public static class NumberFormatter

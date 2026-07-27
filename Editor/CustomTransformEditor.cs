@@ -2,9 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
-
 [CustomEditor(typeof(Transform))]
 [CanEditMultipleObjects]
+[InitializeOnLoad] // 1. Ensures the static constructor runs on editor load/recompile
 public class CustomTransformEditor : Editor
 {
     private static readonly Dictionary<int, SavedTransformData> _pendingChanges = new Dictionary<int, SavedTransformData>();
@@ -19,6 +19,13 @@ public class CustomTransformEditor : Editor
 
     private SerializedProperty m_Pos, m_Rot, m_Scale;
 
+    // 2. Hook into the state change statically so it persists regardless of Inspector state
+    static CustomTransformEditor()
+    {
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+    }
+
     private void OnEnable()
     {
         if (target == null || targets == null || targets.Length == 0 || targets[0] == null)
@@ -27,20 +34,15 @@ public class CustomTransformEditor : Editor
         m_Pos = serializedObject.FindProperty("m_LocalPosition");
         m_Rot = serializedObject.FindProperty("m_LocalRotation");
         m_Scale = serializedObject.FindProperty("m_LocalScale");
-
-        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
     }
 
-    private void OnDisable()
-    {
-        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-    }
+    // OnDisable is no longer needed since we manage the event statically
 
     public override void OnInspectorGUI()
     {
         if (serializedObject == null || serializedObject.targetObject == null) 
             return;
+            
         serializedObject.Update();
         float originalLabelWidth = EditorGUIUtility.labelWidth;
         
@@ -203,19 +205,23 @@ public class CustomTransformEditor : Editor
     {
         if (state == PlayModeStateChange.EnteredEditMode)
         {
-            foreach (var entry in _pendingChanges)
+            // 3. Delay the execution so Unity's internal GameObjectInspector has a frame to breathe and rebuild
+            EditorApplication.delayCall += () =>
             {
-                Transform t = EditorUtility.InstanceIDToObject(entry.Key) as Transform;
-                if (t != null)
+                foreach (var entry in _pendingChanges)
                 {
-                    Undo.RecordObject(t, "Apply Saved Playmode Transform");
-                    if (entry.Value.Pos.HasValue) t.localPosition = entry.Value.Pos.Value;
-                    if (entry.Value.Rot.HasValue) t.localRotation = entry.Value.Rot.Value;
-                    if (entry.Value.Scale.HasValue) t.localScale = entry.Value.Scale.Value;
-                    EditorUtility.SetDirty(t);
+                    Transform t = EditorUtility.InstanceIDToObject(entry.Key) as Transform;
+                    if (t != null)
+                    {
+                        Undo.RecordObject(t, "Apply Saved Playmode Transform");
+                        if (entry.Value.Pos.HasValue) t.localPosition = entry.Value.Pos.Value;
+                        if (entry.Value.Rot.HasValue) t.localRotation = entry.Value.Rot.Value;
+                        if (entry.Value.Scale.HasValue) t.localScale = entry.Value.Scale.Value;
+                        EditorUtility.SetDirty(t);
+                    }
                 }
-            }
-            _pendingChanges.Clear();
+                _pendingChanges.Clear();
+            };
         }
     }
 }
